@@ -24,9 +24,9 @@ AjaxControlToolkit.CalendarBehavior = function(element) {
     /// A behavior that attaches a calendar date selector to a textbox
     /// </summmary>
     /// <param name="element" type="Sys.UI.DomElement">The element to attach to</param>
-    
+
     AjaxControlToolkit.CalendarBehavior.initializeBase(this, [element]);
-            
+
     this._textbox = AjaxControlToolkit.TextBoxWrapper.get_Wrapper(element);
     this._format = "d";
     this._cssClass = "ajax__calendar";
@@ -62,7 +62,7 @@ AjaxControlToolkit.CalendarBehavior = function(element) {
     this._yearsTable = null;
     this._yearsBody = null;
     this._popupPosition = AjaxControlToolkit.CalendarPosition.BottomLeft;
-        
+
     this._popupBehavior = null;
     this._modeChangeAnimation = null;
     this._modeChangeMoveTopOrLeftAnimation = null;
@@ -73,24 +73,24 @@ AjaxControlToolkit.CalendarBehavior = function(element) {
     this._isAnimating = false;
     this._width = 170;
     this._height = 139;
-    this._modes = {"days" : null, "months" : null, "years" : null};
-    this._modeOrder = {"days" : 0, "months" : 1, "years" : 2 };
+    this._modes = { "days": null, "months": null, "years": null };
+    this._modeOrder = { "days": 0, "months": 1, "years": 2 };
     this._hourOffsetForDst = 12;  // Hour value for calls to new Date(...) to avoid DST issues
     this._blur = new AjaxControlToolkit.DeferredOperation(1, this, this.blur);
-    
+
     this._button$delegates = {
-        click : Function.createDelegate(this, this._button_onclick),
-        keypress : Function.createDelegate(this, this._button_onkeypress),
-        blur : Function.createDelegate(this, this._button_onblur)
+        click: Function.createDelegate(this, this._button_onclick),
+        keypress: Function.createDelegate(this, this._button_onkeypress),
+        blur: Function.createDelegate(this, this._button_onblur)
     }
     this._element$delegates = {
-        change : Function.createDelegate(this, this._element_onchange),
-        keypress : Function.createDelegate(this, this._element_onkeypress),
-        click : Function.createDelegate(this, this._element_onclick),
-        focus : Function.createDelegate(this, this._element_onfocus),
-        blur : Function.createDelegate(this, this._element_onblur)
+        change: Function.createDelegate(this, this._element_onchange),
+        keypress: Function.createDelegate(this, this._element_onkeypress),
+        click: Function.createDelegate(this, this._element_onclick),
+        focus: Function.createDelegate(this, this._element_onfocus),
+        blur: Function.createDelegate(this, this._element_onblur)
     }
-    this._popup$delegates = { 
+    this._popup$delegates = {
         mousedown: Function.createDelegate(this, this._popup_onmousedown),
         mouseup: Function.createDelegate(this, this._popup_onmouseup),
         drag: Function.createDelegate(this, this._popup_onevent),
@@ -98,50 +98,50 @@ AjaxControlToolkit.CalendarBehavior = function(element) {
         select: Function.createDelegate(this, this._popup_onevent)
     }
     this._cell$delegates = {
-        mouseover : Function.createDelegate(this, this._cell_onmouseover),
-        mouseout : Function.createDelegate(this, this._cell_onmouseout),
-        click : Function.createDelegate(this, this._cell_onclick)
+        mouseover: Function.createDelegate(this, this._cell_onmouseover),
+        mouseout: Function.createDelegate(this, this._cell_onmouseout),
+        click: Function.createDelegate(this, this._cell_onclick)
     }
 }
-AjaxControlToolkit.CalendarBehavior.prototype = {    
+AjaxControlToolkit.CalendarBehavior.prototype = {
 
-    get_animated : function() {
+    get_animated: function() {
         /// <summary>
         /// Whether changing modes is animated
         /// </summary>
         /// <value type="Boolean" />
-           
+
         return this._animated;
     },
-    set_animated : function(value) {
+    set_animated: function(value) {
         if (this._animated != value) {
             this._animated = value;
             this.raisePropertyChanged("animated");
         }
     },
 
-    get_enabled : function() {
+    get_enabled: function() {
         /// <value type="Boolean">
         /// Whether this behavior is available for the current element
         /// </value>
-           
+
         return this._enabled;
     },
-    set_enabled : function(value) {
+    set_enabled: function(value) {
         if (this._enabled != value) {
             this._enabled = value;
             this.raisePropertyChanged("enabled");
         }
     },
-    
-    get_button : function() {
+
+    get_button: function() {
         /// <value type="Sys.UI.DomElement">
         /// The button to use to show the calendar (optional)
         /// </value>
-        
+
         return this._button;
     },
-    set_button : function(value) {
+    set_button: function(value) {
         if (this._button != value) {
             if (this._button && this.get_isInitialized()) {
                 $common.removeHandlers(this._button, this._button$delegates);
@@ -153,37 +153,37 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this.raisePropertyChanged("button");
         }
     },
-    
-    get_popupPosition : function() {
+
+    get_popupPosition: function() {
         /// <value type="AjaxControlToolkit.CalendarPosition">
         /// Where the popup should be positioned relative to the target control.
         /// Can be BottomLeft (Default), BottomRight, TopLeft, TopRight.
         /// </value>
-        
+
         return this._popupPosition;
     },
-    set_popupPosition : function(value) {
+    set_popupPosition: function(value) {
         if (this._popupPosition != value) {
             this._popupPosition = value;
             this.raisePropertyChanged('popupPosition');
         }
     },
-    
-    get_format : function() { 
+
+    get_format: function() {
         /// <value type="String">
         /// The format to use for the date value
         /// </value>
 
-        return this._format; 
+        return this._format;
     },
-    set_format : function(value) { 
+    set_format: function(value) {
         if (this._format != value) {
-            this._format = value; 
+            this._format = value;
             this.raisePropertyChanged("format");
         }
     },
-    
-    get_selectedDate : function() {
+
+    get_selectedDate: function() {
         /// <value type="Date">
         /// The date value represented by the text box
         /// </value>
@@ -199,19 +199,33 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
         return this._selectedDate;
     },
-    set_selectedDate : function(value) {
-        if(value && (String.isInstanceOfType(value)) && (value.length != 0)) {
+    set_selectedDate: function(value) {
+        if (value && (String.isInstanceOfType(value)) && (value.length != 0)) {
             value = new Date(value);
         }
-        
+
         if (value) value = value.getDateOnly();
 
         if (this._selectedDate != value) {
-            this._selectedDate = value;            
+            this._selectedDate = value;
             this._selectedDateChanging = true;
             var text = "";
             if (value) {
-                text = value.localeFormat(this._format);
+                //text = value.localeFormat(this._format);
+
+                //add by big 5-Feb-2008 {
+                if (this._isThaiCulture()) {
+                    //สำหรับไทยต้องใช้ format ที่มีเครื่องหมายวรรคตอนต่างๆคั่นไว้ เช่น d/M/yyyy, d m yyyy เป็นต้น
+                    try {
+                        temp = value.localeFormat(this._format);
+                        text = this._convetTextYear(temp, 543);
+                    } catch (err) {
+                        alert("set_selectedDate Error : " + err);
+                    }
+                } else {
+                    text = value.localeFormat(this._format);
+                }
+                //}
             }
             if (text != this._textbox.get_Value()) {
                 this._textbox.set_Value(text);
@@ -223,7 +237,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
     },
 
-    get_visibleDate : function() {
+    get_visibleDate: function() {
         /// <summary>
         /// The date currently visible in the calendar
         /// </summary>
@@ -231,22 +245,22 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         return this._visibleDate;
     },
-    set_visibleDate : function(value) {
+    set_visibleDate: function(value) {
         if (value) value = value.getDateOnly();
         if (this._visibleDate != value) {
             this._switchMonth(value, !this._isOpen);
             this.raisePropertyChanged("visibleDate");
         }
     },
-    
-    get_isOpen : function() {
+
+    get_isOpen: function() {
         /// <value type="Boolean">
         /// Whether the calendar is open
         /// </value>
         return this._isOpen;
     },
 
-    get_todaysDate : function() {
+    get_todaysDate: function() {
         /// <value type="Date">
         /// The date to use for "Today"
         /// </value>
@@ -255,7 +269,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
         return new Date().getDateOnly();
     },
-    set_todaysDate : function(value) {
+    set_todaysDate: function(value) {
         if (value) value = value.getDateOnly();
         if (this._todaysDate != value) {
             this._todaysDate = value;
@@ -263,30 +277,30 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this.raisePropertyChanged("todaysDate");
         }
     },
-    
-    get_firstDayOfWeek : function() {
+
+    get_firstDayOfWeek: function() {
         /// <value type="AjaxControlToolkit.FirstDayOfWeek">
         /// The day of the week to appear as the first day in the calendar
         /// </value>
-        
+
         return this._firstDayOfWeek;
     },
-    set_firstDayOfWeek : function(value) {
+    set_firstDayOfWeek: function(value) {
         if (this._firstDayOfWeek != value) {
             this._firstDayOfWeek = value;
             this.invalidate();
             this.raisePropertyChanged("firstDayOfWeek");
         }
     },
-        
-    get_cssClass : function() {
+
+    get_cssClass: function() {
         /// <value type="String">
         /// The CSS class selector to use to change the calendar's appearance
         /// </value>
 
         return this._cssClass;
     },
-    set_cssClass : function(value) {
+    set_cssClass: function(value) {
         if (this._cssClass != value) {
             if (this._cssClass && this.get_isInitialized()) {
                 Sys.UI.DomElement.removeCssClass(this._container, this._cssClass);
@@ -298,16 +312,16 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this.raisePropertyChanged("cssClass");
         }
     },
-    
-    get_todayButton : function() {
+
+    get_todayButton: function() {
         /// <value type="Sys.UI.DomElement">
         /// The button used to select todays date
         /// </value>
 
         return this._today;
     },
-    
-    get_dayCell : function(row, col) {
+
+    get_dayCell: function(row, col) {
         /// <value type="Sys.UI.DomElement">
         /// Gets the day cell at the specified row or column
         /// </value>
@@ -316,8 +330,8 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
         return null;
     },
-    
-    add_showing : function(handler) {
+
+    add_showing: function(handler) {
         /// <summary>
         /// Adds an event handler for the <code>showiwng</code> event.
         /// </summary>
@@ -328,7 +342,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().addHandler("showing", handler);
     },
-    remove_showing : function(handler) {
+    remove_showing: function(handler) {
         /// <summary>
         /// Removes an event handler for the <code>showing</code> event.
         /// </summary>
@@ -339,7 +353,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().removeHandler("showing", handler);
     },
-    raiseShowing : function(eventArgs) {
+    raiseShowing: function(eventArgs) {
         /// <summary>
         /// Raise the showing event
         /// </summary>
@@ -347,14 +361,14 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         /// Event arguments for the showing event
         /// </param>
         /// <returns />
-        
+
         var handler = this.get_events().getHandler('showing');
         if (handler) {
             handler(this, eventArgs);
         }
     },
-    
-    add_shown : function(handler) {
+
+    add_shown: function(handler) {
         /// <summary>
         /// Adds an event handler for the <code>shown</code> event.
         /// </summary>
@@ -365,7 +379,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().addHandler("shown", handler);
     },
-    remove_shown : function(handler) {
+    remove_shown: function(handler) {
         /// <summary>
         /// Removes an event handler for the <code>shown</code> event.
         /// </summary>
@@ -376,7 +390,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().removeHandler("shown", handler);
     },
-    raiseShown : function() {
+    raiseShown: function() {
         /// <summary>
         /// Raise the <code>shown</code> event
         /// </summary>
@@ -387,8 +401,8 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             handlers(this, Sys.EventArgs.Empty);
         }
     },
-    
-    add_hiding : function(handler) {
+
+    add_hiding: function(handler) {
         /// <summary>
         /// Adds an event handler for the <code>hiding</code> event.
         /// </summary>
@@ -399,7 +413,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().addHandler("hiding", handler);
     },
-    remove_hiding : function(handler) {
+    remove_hiding: function(handler) {
         /// <summary>
         /// Removes an event handler for the <code>hiding</code> event.
         /// </summary>
@@ -410,7 +424,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().removeHandler("hiding", handler);
     },
-    raiseHiding : function(eventArgs) {
+    raiseHiding: function(eventArgs) {
         /// <summary>
         /// Raise the hiding event
         /// </summary>
@@ -418,14 +432,14 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         /// Event arguments for the hiding event
         /// </param>
         /// <returns />
-        
+
         var handler = this.get_events().getHandler('hiding');
         if (handler) {
             handler(this, eventArgs);
         }
     },
-    
-    add_hidden : function(handler) {
+
+    add_hidden: function(handler) {
         /// <summary>
         /// Adds an event handler for the <code>hidden</code> event.
         /// </summary>
@@ -436,7 +450,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().addHandler("hidden", handler);
     },
-    remove_hidden : function(handler) {
+    remove_hidden: function(handler) {
         /// <summary>
         /// Removes an event handler for the <code>hidden</code> event.
         /// </summary>
@@ -447,7 +461,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().removeHandler("hidden", handler);
     },
-    raiseHidden : function() {
+    raiseHidden: function() {
         /// <summary>
         /// Raise the <code>hidden</code> event
         /// </summary>
@@ -458,8 +472,8 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             handlers(this, Sys.EventArgs.Empty);
         }
     },
-    
-    add_dateSelectionChanged : function(handler) {
+
+    add_dateSelectionChanged: function(handler) {
         /// <summary>
         /// Adds an event handler for the <code>dateSelectionChanged</code> event.
         /// </summary>
@@ -470,7 +484,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().addHandler("dateSelectionChanged", handler);
     },
-    remove_dateSelectionChanged : function(handler) {
+    remove_dateSelectionChanged: function(handler) {
         /// <summary>
         /// Removes an event handler for the <code>dateSelectionChanged</code> event.
         /// </summary>
@@ -481,7 +495,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         this.get_events().removeHandler("dateSelectionChanged", handler);
     },
-    raiseDateSelectionChanged : function() {
+    raiseDateSelectionChanged: function() {
         /// <summary>
         /// Raise the <code>dateSelectionChanged</code> event
         /// </summary>
@@ -493,34 +507,34 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
     },
 
-    initialize : function() {
+    initialize: function() {
         /// <summary>
         /// Initializes the components and parameters for this behavior
         /// </summary>
-        
+
         AjaxControlToolkit.CalendarBehavior.callBaseMethod(this, "initialize");
-        
+
         var elt = this.get_element();
         $addHandlers(elt, this._element$delegates);
-        
+
         if (this._button) {
             $addHandlers(this._button, this._button$delegates);
         }
-        
+
         this._modeChangeMoveTopOrLeftAnimation = new AjaxControlToolkit.Animation.LengthAnimation(null, null, null, "style", null, 0, 0, "px");
         this._modeChangeMoveBottomOrRightAnimation = new AjaxControlToolkit.Animation.LengthAnimation(null, null, null, "style", null, 0, 0, "px");
-        this._modeChangeAnimation = new AjaxControlToolkit.Animation.ParallelAnimation(null, .25, null, [ this._modeChangeMoveTopOrLeftAnimation, this._modeChangeMoveBottomOrRightAnimation ]);
+        this._modeChangeAnimation = new AjaxControlToolkit.Animation.ParallelAnimation(null, .25, null, [this._modeChangeMoveTopOrLeftAnimation, this._modeChangeMoveBottomOrRightAnimation]);
 
         var value = this.get_selectedDate();
         if (value) {
             this.set_selectedDate(value);
-        } 
+        }
     },
-    dispose : function() {
+    dispose: function() {
         /// <summary>
         /// Disposes this behavior's resources
         /// </summary>
-        
+
         if (this._popupBehavior) {
             this._popupBehavior.dispose();
             this._popupBehavior = null;
@@ -540,7 +554,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this._modeChangeAnimation = null;
         }
         if (this._container) {
-            if(this._container.parentNode) { // added this check before calling removeChild WI: 8486
+            if (this._container.parentNode) { // added this check before calling removeChild WI: 8486
                 this._container.parentNode.removeChild(this._container);
             }
             this._container = null;
@@ -548,7 +562,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         if (this._popupDiv) {
             $common.removeHandlers(this._popupDiv, this._popup$delegates);
             this._popupDiv = null;
-        }        
+        }
         if (this._prevArrow) {
             $common.removeHandlers(this._prevArrow, this._cell$delegates);
             this._prevArrow = null;
@@ -595,83 +609,83 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 }
             }
             this._yearsBody = null;
-        }        
+        }
         var elt = this.get_element();
         $common.removeHandlers(elt, this._element$delegates);
         AjaxControlToolkit.CalendarBehavior.callBaseMethod(this, "dispose");
     },
-    
-    show : function() {
+
+    show: function() {
         /// <summary>
         /// Shows the calendar
         /// </summary>
-        
+
         this._ensureCalendar();
-        
+
         if (!this._isOpen) {
-            
+
             var eventArgs = new Sys.CancelEventArgs();
             this.raiseShowing(eventArgs);
             if (eventArgs.get_cancel()) {
                 return;
             }
-            
+
             this._isOpen = true;
             this._switchMonth(null, true);
             this._popupBehavior.show();
             this.raiseShown();
         }
-    },    
-    hide : function() {
+    },
+    hide: function() {
         /// <summary>
         /// Hides the calendar
         /// </summary>
-        
+
         if (this._isOpen) {
             var eventArgs = new Sys.CancelEventArgs();
             this.raiseHiding(eventArgs);
             if (eventArgs.get_cancel()) {
                 return;
             }
-            
+
             if (this._container) {
-                this._popupBehavior.hide();        
-                this._switchMode("days", true);            
+                this._popupBehavior.hide();
+                this._switchMode("days", true);
             }
-            this._isOpen = false;        
+            this._isOpen = false;
             this.raiseHidden();
 
             // make sure we clean up the flag due to issues with alert/alt-tab/etc
             this._popupMouseDown = false;
         }
     },
-    focus : function() {
+    focus: function() {
         if (this._button) {
             this._button.focus();
         } else {
             this.get_element().focus();
         }
     },
-    blur : function(force) {
+    blur: function(force) {
         if (!force && Sys.Browser.agent === Sys.Browser.Opera) {
             this._blur.post(true);
         } else {
             if (!this._popupMouseDown) {
-                this.hide();                
-            } 
+                this.hide();
+            }
             // make sure we clean up the flag due to issues with alert/alt-tab/etc
             this._popupMouseDown = false;
         }
     },
-    
-    suspendLayout : function() {
+
+    suspendLayout: function() {
         /// <summary>
         /// Suspends layout of the behavior while setting properties
         /// </summary>
 
         this._layoutSuspended++;
     },
-    resumeLayout : function() {
+    resumeLayout: function() {
         /// <summary>
         /// Resumes layout of the behavior and performs any pending layout requests
         /// </summary>
@@ -684,287 +698,287 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             }
         }
     },
-    invalidate : function() {
+    invalidate: function() {
         /// <summary>
         /// Performs layout of the behavior unless layout is suspended
         /// </summary>
-        
+
         if (this._layoutSuspended > 0) {
             this._layoutRequested = true;
         } else {
             this._performLayout();
         }
     },
-    
-    _buildCalendar : function() {
+
+    _buildCalendar: function() {
         /// <summary>
         /// Builds the calendar's layout
         /// </summary>
-        
+
         var elt = this.get_element();
         var id = this.get_id();
-        
+
         this._container = $common.createElementFromTemplate({
-            nodeName : "div",
-            properties : { id : id + "_container" },
-            cssClasses : [this._cssClass]
+            nodeName: "div",
+            properties: { id: id + "_container" },
+            cssClasses: [this._cssClass]
         }, elt.parentNode);
 
-        this._popupDiv = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            events : this._popup$delegates, 
-            properties : {
-                id : id + "_popupDiv"
+        this._popupDiv = $common.createElementFromTemplate({
+            nodeName: "div",
+            events: this._popup$delegates,
+            properties: {
+                id: id + "_popupDiv"
             },
-            cssClasses : ["ajax__calendar_container"], 
-            visible : false 
+            cssClasses: ["ajax__calendar_container"],
+            visible: false
         }, this._container);
     },
-    _buildHeader : function() {
+    _buildHeader: function() {
         /// <summary>
         /// Builds the header for the calendar
         /// </summary>
-        
+
         var id = this.get_id();
-        
-        this._header = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            properties : { id : id + "_header" },
-            cssClasses : [ "ajax__calendar_header" ]
+
+        this._header = $common.createElementFromTemplate({
+            nodeName: "div",
+            properties: { id: id + "_header" },
+            cssClasses: ["ajax__calendar_header"]
         }, this._popupDiv);
-        
-        var prevArrowWrapper = $common.createElementFromTemplate({ nodeName : "div" }, this._header);
-        this._prevArrow = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            properties : {
-                id : id + "_prevArrow",
-                mode : "prev"
+
+        var prevArrowWrapper = $common.createElementFromTemplate({ nodeName: "div" }, this._header);
+        this._prevArrow = $common.createElementFromTemplate({
+            nodeName: "div",
+            properties: {
+                id: id + "_prevArrow",
+                mode: "prev"
             },
-            events : this._cell$delegates,
-            cssClasses : [ "ajax__calendar_prev" ] 
+            events: this._cell$delegates,
+            cssClasses: ["ajax__calendar_prev"]
         }, prevArrowWrapper);
-        
-        var nextArrowWrapper = $common.createElementFromTemplate({ nodeName : "div" }, this._header);
-        this._nextArrow = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            properties : {
-                id : id + "_nextArrow",
-                mode : "next"
+
+        var nextArrowWrapper = $common.createElementFromTemplate({ nodeName: "div" }, this._header);
+        this._nextArrow = $common.createElementFromTemplate({
+            nodeName: "div",
+            properties: {
+                id: id + "_nextArrow",
+                mode: "next"
             },
-            events : this._cell$delegates, 
-            cssClasses : [ "ajax__calendar_next" ] 
+            events: this._cell$delegates,
+            cssClasses: ["ajax__calendar_next"]
         }, nextArrowWrapper);
-        
-        var titleWrapper = $common.createElementFromTemplate({ nodeName : "div" }, this._header);        
-        this._title = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            properties : {
-                id : id + "_title",
-                mode : "title"
+
+        var titleWrapper = $common.createElementFromTemplate({ nodeName: "div" }, this._header);
+        this._title = $common.createElementFromTemplate({
+            nodeName: "div",
+            properties: {
+                id: id + "_title",
+                mode: "title"
             },
-            events : this._cell$delegates, 
-            cssClasses : [ "ajax__calendar_title" ] 
+            events: this._cell$delegates,
+            cssClasses: ["ajax__calendar_title"]
         }, titleWrapper);
     },
-    _buildBody : function() {
+    _buildBody: function() {
         /// <summary>
         /// Builds the body region for the calendar
         /// </summary>
-        
-        this._body = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            properties : { id : this.get_id() + "_body" },
-            cssClasses : [ "ajax__calendar_body" ]
+
+        this._body = $common.createElementFromTemplate({
+            nodeName: "div",
+            properties: { id: this.get_id() + "_body" },
+            cssClasses: ["ajax__calendar_body"]
         }, this._popupDiv);
 
         this._buildDays();
         this._buildMonths();
         this._buildYears();
     },
-    _buildFooter : function() {
+    _buildFooter: function() {
         /// <summary>
         /// Builds the footer for the calendar
         /// </summary>
-        
-        var todayWrapper = $common.createElementFromTemplate({ nodeName : "div" }, this._popupDiv);
+
+        var todayWrapper = $common.createElementFromTemplate({ nodeName: "div" }, this._popupDiv);
         this._today = $common.createElementFromTemplate({
-            nodeName : "div",
-            properties : {
-                id : this.get_id() + "_today",
-                mode : "today"
+            nodeName: "div",
+            properties: {
+                id: this.get_id() + "_today",
+                mode: "today"
             },
-            events : this._cell$delegates,
-            cssClasses : [ "ajax__calendar_footer", "ajax__calendar_today" ]
+            events: this._cell$delegates,
+            cssClasses: ["ajax__calendar_footer", "ajax__calendar_today"]
         }, todayWrapper);
     },
-    _buildDays : function() {
+    _buildDays: function() {
         /// <summary>
         /// Builds a "days of the month" view for the calendar
         /// </summary>
-        
+
         var dtf = Sys.CultureInfo.CurrentCulture.dateTimeFormat;
         var id = this.get_id();
 
-        this._days = $common.createElementFromTemplate({ 
-            nodeName : "div",
-            properties : { id : id + "_days" },
-            cssClasses : [ "ajax__calendar_days" ]
+        this._days = $common.createElementFromTemplate({
+            nodeName: "div",
+            properties: { id: id + "_days" },
+            cssClasses: ["ajax__calendar_days"]
         }, this._body);
         this._modes["days"] = this._days;
-        
-        this._daysTable = $common.createElementFromTemplate({ 
-            nodeName : "table",
-            properties : {
-                id : id + "_daysTable",
-                cellPadding : 0,
-                cellSpacing : 0,
-                border : 0,
-                style : { margin : "auto" }
-            } 
+
+        this._daysTable = $common.createElementFromTemplate({
+            nodeName: "table",
+            properties: {
+                id: id + "_daysTable",
+                cellPadding: 0,
+                cellSpacing: 0,
+                border: 0,
+                style: { margin: "auto" }
+            }
         }, this._days);
-        
-        this._daysTableHeader = $common.createElementFromTemplate({ nodeName : "thead", properties : { id : id + "_daysTableHeader" } }, this._daysTable);
-        this._daysTableHeaderRow = $common.createElementFromTemplate({ nodeName : "tr", properties : { id : id + "_daysTableHeaderRow" } }, this._daysTableHeader);
+
+        this._daysTableHeader = $common.createElementFromTemplate({ nodeName: "thead", properties: { id: id + "_daysTableHeader"} }, this._daysTable);
+        this._daysTableHeaderRow = $common.createElementFromTemplate({ nodeName: "tr", properties: { id: id + "_daysTableHeaderRow"} }, this._daysTableHeader);
         for (var i = 0; i < 7; i++) {
-            var dayCell = $common.createElementFromTemplate({ nodeName : "td" }, this._daysTableHeaderRow);
+            var dayCell = $common.createElementFromTemplate({ nodeName: "td" }, this._daysTableHeaderRow);
             var dayDiv = $common.createElementFromTemplate({
-                nodeName : "div",
-                cssClasses : [ "ajax__calendar_dayname" ]
+                nodeName: "div",
+                cssClasses: ["ajax__calendar_dayname"]
             }, dayCell);
         }
 
-        this._daysBody = $common.createElementFromTemplate({ nodeName: "tbody", properties : { id : id + "_daysBody" } }, this._daysTable);
+        this._daysBody = $common.createElementFromTemplate({ nodeName: "tbody", properties: { id: id + "_daysBody"} }, this._daysTable);
         for (var i = 0; i < 6; i++) {
-            var daysRow = $common.createElementFromTemplate({ nodeName : "tr" }, this._daysBody);
-            for(var j = 0; j < 7; j++) {
-                var dayCell = $common.createElementFromTemplate({ nodeName : "td" }, daysRow);
+            var daysRow = $common.createElementFromTemplate({ nodeName: "tr" }, this._daysBody);
+            for (var j = 0; j < 7; j++) {
+                var dayCell = $common.createElementFromTemplate({ nodeName: "td" }, daysRow);
                 var dayDiv = $common.createElementFromTemplate({
-                    nodeName : "div",
-                    properties : {
-                        mode : "day",
-                        id : id + "_day_" + i + "_" + j,
-                        innerHTML : "&nbsp;"
+                    nodeName: "div",
+                    properties: {
+                        mode: "day",
+                        id: id + "_day_" + i + "_" + j,
+                        innerHTML: "&nbsp;"
                     },
-                    events : this._cell$delegates,
-                    cssClasses : [ "ajax__calendar_day" ]
+                    events: this._cell$delegates,
+                    cssClasses: ["ajax__calendar_day"]
                 }, dayCell);
             }
         }
     },
-    _buildMonths : function() {
+    _buildMonths: function() {
         /// <summary>
         /// Builds a "months of the year" view for the calendar
         /// </summary>
-        
-        var dtf = Sys.CultureInfo.CurrentCulture.dateTimeFormat;        
+
+        var dtf = Sys.CultureInfo.CurrentCulture.dateTimeFormat;
         var id = this.get_id();
-        
+
         this._months = $common.createElementFromTemplate({
-            nodeName : "div",
-            properties : { id : id + "_months" },
-            cssClasses : [ "ajax__calendar_months" ],
-            visible : false
+            nodeName: "div",
+            properties: { id: id + "_months" },
+            cssClasses: ["ajax__calendar_months"],
+            visible: false
         }, this._body);
         this._modes["months"] = this._months;
-        
+
         this._monthsTable = $common.createElementFromTemplate({
-            nodeName : "table",
-            properties : {
-                id : id + "_monthsTable",
-                cellPadding : 0,
-                cellSpacing : 0,
-                border : 0,
-                style : { margin : "auto" }
+            nodeName: "table",
+            properties: {
+                id: id + "_monthsTable",
+                cellPadding: 0,
+                cellSpacing: 0,
+                border: 0,
+                style: { margin: "auto" }
             }
         }, this._months);
 
-        this._monthsBody = $common.createElementFromTemplate({ nodeName : "tbody", properties : { id : id + "_monthsBody" } }, this._monthsTable);
+        this._monthsBody = $common.createElementFromTemplate({ nodeName: "tbody", properties: { id: id + "_monthsBody"} }, this._monthsTable);
         for (var i = 0; i < 3; i++) {
-            var monthsRow = $common.createElementFromTemplate({ nodeName : "tr" }, this._monthsBody);
+            var monthsRow = $common.createElementFromTemplate({ nodeName: "tr" }, this._monthsBody);
             for (var j = 0; j < 4; j++) {
-                var monthCell = $common.createElementFromTemplate({ nodeName : "td" }, monthsRow);
+                var monthCell = $common.createElementFromTemplate({ nodeName: "td" }, monthsRow);
                 var monthDiv = $common.createElementFromTemplate({
-                    nodeName : "div",
-                    properties : {
-                        id : id + "_month_" + i + "_" + j,
-                        mode : "month",
-                        month : (i * 4) + j,
-                        innerHTML : "<br />" + dtf.AbbreviatedMonthNames[(i * 4) + j]
+                    nodeName: "div",
+                    properties: {
+                        id: id + "_month_" + i + "_" + j,
+                        mode: "month",
+                        month: (i * 4) + j,
+                        innerHTML: "<br />" + dtf.AbbreviatedMonthNames[(i * 4) + j]
                     },
-                    events : this._cell$delegates,
-                    cssClasses : [ "ajax__calendar_month" ]
+                    events: this._cell$delegates,
+                    cssClasses: ["ajax__calendar_month"]
                 }, monthCell);
             }
         }
     },
-    _buildYears : function() {
+    _buildYears: function() {
         /// <summary>
         /// Builds a "years in this decade" view for the calendar
         /// </summary>
-        
+
         var id = this.get_id();
-        
+
         this._years = $common.createElementFromTemplate({
-            nodeName : "div",
-            properties : { id : id + "_years" },
-            cssClasses : [ "ajax__calendar_years" ],
-            visible : false
+            nodeName: "div",
+            properties: { id: id + "_years" },
+            cssClasses: ["ajax__calendar_years"],
+            visible: false
         }, this._body);
         this._modes["years"] = this._years;
-        
+
         this._yearsTable = $common.createElementFromTemplate({
-            nodeName : "table",
-            properties : {
-                id : id + "_yearsTable",
-                cellPadding : 0,
-                cellSpacing : 0,
-                border : 0,
-                style : { margin : "auto" }
+            nodeName: "table",
+            properties: {
+                id: id + "_yearsTable",
+                cellPadding: 0,
+                cellSpacing: 0,
+                border: 0,
+                style: { margin: "auto" }
             }
         }, this._years);
 
-        this._yearsBody = $common.createElementFromTemplate({ nodeName : "tbody", properties : { id : id + "_yearsBody" } }, this._yearsTable);
+        this._yearsBody = $common.createElementFromTemplate({ nodeName: "tbody", properties: { id: id + "_yearsBody"} }, this._yearsTable);
         for (var i = 0; i < 3; i++) {
-            var yearsRow = $common.createElementFromTemplate({ nodeName : "tr" }, this._yearsBody);
+            var yearsRow = $common.createElementFromTemplate({ nodeName: "tr" }, this._yearsBody);
             for (var j = 0; j < 4; j++) {
-                var yearCell = $common.createElementFromTemplate({ nodeName : "td" }, yearsRow);
-                var yearDiv = $common.createElementFromTemplate({ 
-                    nodeName : "div", 
-                    properties : { 
-                        id : id + "_year_" + i + "_" + j,
-                        mode : "year",
-                        year : ((i * 4) + j) - 1
+                var yearCell = $common.createElementFromTemplate({ nodeName: "td" }, yearsRow);
+                var yearDiv = $common.createElementFromTemplate({
+                    nodeName: "div",
+                    properties: {
+                        id: id + "_year_" + i + "_" + j,
+                        mode: "year",
+                        year: ((i * 4) + j) - 1
                     },
-                    events : this._cell$delegates,
-                    cssClasses : [ "ajax__calendar_year" ]
+                    events: this._cell$delegates,
+                    cssClasses: ["ajax__calendar_year"]
                 }, yearCell);
             }
         }
     },
-    
-    _performLayout : function() {
+
+    _performLayout: function() {
         /// <summmary>
         /// Updates the various views of the calendar to match the current selected and visible dates
         /// </summary>
-        
+
         var elt = this.get_element();
         if (!elt) return;
         if (!this.get_isInitialized()) return;
         if (!this._isOpen) return;
 
-        var dtf = Sys.CultureInfo.CurrentCulture.dateTimeFormat;        
+        var dtf = Sys.CultureInfo.CurrentCulture.dateTimeFormat;
         var selectedDate = this.get_selectedDate();
         var visibleDate = this._getEffectiveVisibleDate();
-        var todaysDate = this.get_todaysDate(); 
-        
+        var todaysDate = this.get_todaysDate();
+
         switch (this._mode) {
             case "days":
-                
+
                 var firstDayOfWeek = this._getFirstDayOfWeek();
                 var daysToBacktrack = visibleDate.getDay() - firstDayOfWeek;
                 if (daysToBacktrack <= 0)
                     daysToBacktrack += 7;
-                    
+
                 var startDate = new Date(visibleDate.getFullYear(), visibleDate.getMonth(), visibleDate.getDate() - daysToBacktrack, this._hourOffsetForDst);
                 var currentDate = startDate;
 
@@ -975,7 +989,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                     }
                     dayCell.appendChild(document.createTextNode(dtf.ShortestDayNames[(i + firstDayOfWeek) % 7]));
                 }
-                for (var week = 0; week < 6; week ++) {
+                for (var week = 0; week < 6; week++) {
                     var weekRow = this._daysBody.rows[week];
                     for (var dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
                         var dayCell = weekRow.cells[dayOfWeek].firstChild;
@@ -985,18 +999,27 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                         dayCell.appendChild(document.createTextNode(currentDate.getDate()));
                         dayCell.title = currentDate.localeFormat("D");
                         dayCell.date = currentDate;
-                        $common.removeCssClasses(dayCell.parentNode, [ "ajax__calendar_other", "ajax__calendar_active" ]);
+                        $common.removeCssClasses(dayCell.parentNode, ["ajax__calendar_other", "ajax__calendar_active"]);
                         Sys.UI.DomElement.addCssClass(dayCell.parentNode, this._getCssClass(dayCell.date, 'd'));
                         currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1, this._hourOffsetForDst);
                     }
                 }
-                
+
                 this._prevArrow.date = new Date(visibleDate.getFullYear(), visibleDate.getMonth() - 1, 1, this._hourOffsetForDst);
                 this._nextArrow.date = new Date(visibleDate.getFullYear(), visibleDate.getMonth() + 1, 1, this._hourOffsetForDst);
                 if (this._title.firstChild) {
                     this._title.removeChild(this._title.firstChild);
                 }
-                this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM, yyyy")));
+                //this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM, yyyy")));
+
+                //add by big 5-Feb-2008 {
+                if (this._isThaiCulture()) {
+                    this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM ") + (eval(visibleDate.localeFormat("yyyy")) + 543).toString()));
+                } else {
+                    this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM, yyyy")));
+                }
+                //}
+
                 this._title.date = visibleDate;
 
                 break;
@@ -1008,15 +1031,24 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                         var cell = row.cells[j].firstChild;
                         cell.date = new Date(visibleDate.getFullYear(), cell.month, 1, this._hourOffsetForDst);
                         cell.title = cell.date.localeFormat("Y");
-                        $common.removeCssClasses(cell.parentNode, [ "ajax__calendar_other", "ajax__calendar_active" ]);
+                        $common.removeCssClasses(cell.parentNode, ["ajax__calendar_other", "ajax__calendar_active"]);
                         Sys.UI.DomElement.addCssClass(cell.parentNode, this._getCssClass(cell.date, 'M'));
                     }
                 }
-                
+
                 if (this._title.firstChild) {
                     this._title.removeChild(this._title.firstChild);
                 }
-                this._title.appendChild(document.createTextNode(visibleDate.localeFormat("yyyy")));
+                //this._title.appendChild(document.createTextNode(visibleDate.localeFormat("yyyy")));
+
+                //add by big 5-Feb-2008 {
+                if (this._isThaiCulture()) {
+                    this._title.appendChild(document.createTextNode((eval(visibleDate.localeFormat("yyyy")) + 543).toString()));
+                } else {
+                    this._title.appendChild(document.createTextNode(visibleDate.localeFormat("yyyy")));
+                }
+                //}
+
                 this._title.date = visibleDate;
                 this._prevArrow.date = new Date(visibleDate.getFullYear() - 1, 0, 1, this._hourOffsetForDst);
                 this._nextArrow.date = new Date(visibleDate.getFullYear() + 1, 0, 1, this._hourOffsetForDst);
@@ -1035,8 +1067,17 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                         } else {
                             cell.appendChild(document.createElement("br"));
                         }
-                        cell.appendChild(document.createTextNode(minYear + cell.year));
-                        $common.removeCssClasses(cell.parentNode, [ "ajax__calendar_other", "ajax__calendar_active" ]);
+                        //cell.appendChild(document.createTextNode(minYear + cell.year));
+
+                        //add by big 5-Feb-2008 {
+                        if (this._isThaiCulture()) {
+                            cell.appendChild(document.createTextNode(minYear + 543 + cell.year));
+                        } else {
+                            cell.appendChild(document.createTextNode(minYear + cell.year));
+                        }
+                        //}
+
+                        $common.removeCssClasses(cell.parentNode, ["ajax__calendar_other", "ajax__calendar_active"]);
                         Sys.UI.DomElement.addCssClass(cell.parentNode, this._getCssClass(cell.date, 'y'));
                     }
                 }
@@ -1044,7 +1085,15 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 if (this._title.firstChild) {
                     this._title.removeChild(this._title.firstChild);
                 }
-                this._title.appendChild(document.createTextNode(minYear.toString() + "-" + (minYear + 9).toString()));
+                //this._title.appendChild(document.createTextNode(minYear.toString() + "-" + (minYear + 9).toString()));
+
+                //add by big 5-Feb-2008 {
+                if (this._isThaiCulture()) {
+                    this._title.appendChild(document.createTextNode((minYear + 543).toString() + "-" + (minYear + 543 + 9).toString()));
+                } else {
+                    this._title.appendChild(document.createTextNode(minYear.toString() + "-" + (minYear + 9).toString()));
+                }
+                //}
                 this._title.date = visibleDate;
                 this._prevArrow.date = new Date(minYear - 10, 0, 1, this._hourOffsetForDst);
                 this._nextArrow.date = new Date(minYear + 10, 0, 1, this._hourOffsetForDst);
@@ -1054,22 +1103,31 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         if (this._today.firstChild) {
             this._today.removeChild(this._today.firstChild);
         }
-        this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("MMMM d, yyyy"))));
-        this._today.date = todaysDate;        
+        //this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("MMMM d, yyyy"))));
+
+        //add by big 5-Feb-2008 {
+        if (this._isThaiCulture()) {
+            this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("d MMMM " + (eval(visibleDate.localeFormat("yyyy")) + 543).toString()))));
+        } else {
+            this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("MMMM d, yyyy"))));
+        }
+        //}
+
+        this._today.date = todaysDate;
     },
-    
-    _ensureCalendar : function() {
-    
+
+    _ensureCalendar: function() {
+
         if (!this._container) {
-            
+
             var elt = this.get_element();
-        
+
             this._buildCalendar();
             this._buildHeader();
             this._buildBody();
             this._buildFooter();
-            
-            this._popupBehavior = new $create(AjaxControlToolkit.PopupBehavior, { parentElement : elt }, {}, {}, this._popupDiv);
+
+            this._popupBehavior = new $create(AjaxControlToolkit.PopupBehavior, { parentElement: elt }, {}, {}, this._popupDiv);
             if (this._popupPosition == AjaxControlToolkit.CalendarPosition.TopLeft) {
                 this._popupBehavior.set_positioningMode(AjaxControlToolkit.PositioningMode.TopLeft);
             } else if (this._popupPosition == AjaxControlToolkit.CalendarPosition.TopRight) {
@@ -1085,12 +1143,12 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             }
         }
     },
-    
-    _fireChanged : function() {
+
+    _fireChanged: function() {
         /// <summary>
         /// Attempts to fire the change event on the attached textbox
         /// </summary>
-        
+
         var elt = this.get_element();
         if (document.createEventObject) {
             elt.fireEvent("onchange");
@@ -1100,26 +1158,26 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             elt.dispatchEvent(e);
         }
     },
-    _switchMonth : function(date, dontAnimate) {
+    _switchMonth: function(date, dontAnimate) {
         /// <summary>
         /// Switches the visible month in the days view
         /// </summary>
         /// <param name="date" type="Date">The visible date to switch to</param>
         /// <param name="dontAnimate" type="Boolean">Prevents animation from occuring if the control is animated</param>
-        
+
         // Check _isAnimating to make sure we don't animate horizontally and vertically at the same time
         if (this._isAnimating) {
             return;
         }
-        
+
         var visibleDate = this._getEffectiveVisibleDate();
         if ((date && date.getFullYear() == visibleDate.getFullYear() && date.getMonth() == visibleDate.getMonth())) {
             dontAnimate = true;
         }
-        
+
         if (this._animated && !dontAnimate) {
             this._isAnimating = true;
-            
+
             var newElement = this._modes[this._mode];
             var oldElement = newElement.cloneNode(true);
             this._body.appendChild(oldElement);
@@ -1128,17 +1186,17 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 // animating down
                 // the newIndex element is the top
                 // the oldIndex element is the bottom (visible)
-                
+
                 // move in, fade in
-                $common.setLocation(newElement, {x:-162,y:0});
+                $common.setLocation(newElement, { x: -162, y: 0 });
                 $common.setVisible(newElement, true);
                 this._modeChangeMoveTopOrLeftAnimation.set_propertyKey("left");
                 this._modeChangeMoveTopOrLeftAnimation.set_target(newElement);
                 this._modeChangeMoveTopOrLeftAnimation.set_startValue(-this._width);
                 this._modeChangeMoveTopOrLeftAnimation.set_endValue(0);
-                
+
                 // move out, fade out
-                $common.setLocation(oldElement, {x:0,y:0});
+                $common.setLocation(oldElement, { x: 0, y: 0 });
                 $common.setVisible(oldElement, true);
                 this._modeChangeMoveBottomOrRightAnimation.set_propertyKey("left");
                 this._modeChangeMoveBottomOrRightAnimation.set_target(oldElement);
@@ -1149,9 +1207,9 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 // animating up
                 // the oldIndex element is the top (visible)
                 // the newIndex element is the bottom
-                
+
                 // move out, fade out
-                $common.setLocation(oldElement, {x:0,y:0});
+                $common.setLocation(oldElement, { x: 0, y: 0 });
                 $common.setVisible(oldElement, true);
                 this._modeChangeMoveTopOrLeftAnimation.set_propertyKey("left");
                 this._modeChangeMoveTopOrLeftAnimation.set_target(oldElement);
@@ -1159,7 +1217,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 this._modeChangeMoveTopOrLeftAnimation.set_startValue(0);
 
                 // move in, fade in
-                $common.setLocation(newElement, {x:162,y:0});
+                $common.setLocation(newElement, { x: 162, y: 0 });
                 $common.setVisible(newElement, true);
                 this._modeChangeMoveBottomOrRightAnimation.set_propertyKey("left");
                 this._modeChangeMoveBottomOrRightAnimation.set_target(newElement);
@@ -1168,8 +1226,8 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             }
             this._visibleDate = date;
             this.invalidate();
-            
-            var endHandler = Function.createDelegate(this, function() { 
+
+            var endHandler = Function.createDelegate(this, function() {
                 this._body.removeChild(oldElement);
                 oldElement = null;
                 this._isAnimating = false;
@@ -1182,43 +1240,43 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this.invalidate();
         }
     },
-    _switchMode : function(mode, dontAnimate) {
+    _switchMode: function(mode, dontAnimate) {
         /// <summary>
         /// Switches the visible view from "days" to "months" to "years"
         /// </summary>
         /// <param name="mode" type="String">The view mode to switch to</param>
         /// <param name="dontAnimate" type="Boolean">Prevents animation from occuring if the control is animated</param>
-        
+
         // Check _isAnimating to make sure we don't animate horizontally and vertically at the same time
         if (this._isAnimating || (this._mode == mode)) {
             return;
         }
-        
+
         var moveDown = this._modeOrder[this._mode] < this._modeOrder[mode];
         var oldElement = this._modes[this._mode];
         var newElement = this._modes[mode];
         this._mode = mode;
-                
-        if (this._animated && !dontAnimate) { 
+
+        if (this._animated && !dontAnimate) {
             this._isAnimating = true;
-            
+
             this.invalidate();
-            
+
             if (moveDown) {
                 // animating down
                 // the newIndex element is the top
                 // the oldIndex element is the bottom (visible)
-                
+
                 // move in, fade in
-                $common.setLocation(newElement, {x:0,y:-this._height});
+                $common.setLocation(newElement, { x: 0, y: -this._height });
                 $common.setVisible(newElement, true);
                 this._modeChangeMoveTopOrLeftAnimation.set_propertyKey("top");
                 this._modeChangeMoveTopOrLeftAnimation.set_target(newElement);
                 this._modeChangeMoveTopOrLeftAnimation.set_startValue(-this._height);
                 this._modeChangeMoveTopOrLeftAnimation.set_endValue(0);
-                
+
                 // move out, fade out
-                $common.setLocation(oldElement, {x:0,y:0});
+                $common.setLocation(oldElement, { x: 0, y: 0 });
                 $common.setVisible(oldElement, true);
 
                 this._modeChangeMoveBottomOrRightAnimation.set_propertyKey("top");
@@ -1230,9 +1288,9 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 // animating up
                 // the oldIndex element is the top (visible)
                 // the newIndex element is the bottom
-                
+
                 // move out, fade out
-                $common.setLocation(oldElement, {x:0,y:0});
+                $common.setLocation(oldElement, { x: 0, y: 0 });
                 $common.setVisible(oldElement, true);
                 this._modeChangeMoveTopOrLeftAnimation.set_propertyKey("top");
                 this._modeChangeMoveTopOrLeftAnimation.set_target(oldElement);
@@ -1240,14 +1298,14 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
                 this._modeChangeMoveTopOrLeftAnimation.set_startValue(0);
 
                 // move in, fade in
-                $common.setLocation(newElement, {x:0,y:139});
+                $common.setLocation(newElement, { x: 0, y: 139 });
                 $common.setVisible(newElement, true);
                 this._modeChangeMoveBottomOrRightAnimation.set_propertyKey("top");
                 this._modeChangeMoveBottomOrRightAnimation.set_target(newElement);
                 this._modeChangeMoveBottomOrRightAnimation.set_endValue(0);
                 this._modeChangeMoveBottomOrRightAnimation.set_startValue(this._height);
             }
-            var endHandler = Function.createDelegate(this, function() { 
+            var endHandler = Function.createDelegate(this, function() {
                 this._isAnimating = false;
                 this._modeChangeAnimation.remove_ended(endHandler);
             });
@@ -1258,17 +1316,17 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             $common.setVisible(oldElement, false);
             this.invalidate();
             $common.setVisible(newElement, true);
-            $common.setLocation(newElement, {x:0,y:0});
+            $common.setLocation(newElement, { x: 0, y: 0 });
         }
     },
-    _isSelected : function(date, part) {
+    _isSelected: function(date, part) {
         /// <summary>
         /// Gets whether the supplied date is the currently selected date
         /// </summary>
         /// <param name="date" type="Date">The date to match</param>
         /// <param name="part" type="String">The most significant part of the date to test</param>
         /// <returns type="Boolean" />
-        
+
         var value = this.get_selectedDate();
         if (!value) return false;
         switch (part) {
@@ -1284,7 +1342,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
         return true;
     },
-    _isOther : function(date, part) {
+    _isOther: function(date, part) {
         /// <summary>
         /// Gets whether the supplied date is in a different view from the current visible month
         /// </summary>
@@ -1294,17 +1352,17 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         var value = this._getEffectiveVisibleDate();
         switch (part) {
-            case 'd': 
+            case 'd':
                 return (date.getFullYear() != value.getFullYear() || date.getMonth() != value.getMonth());
-            case 'M': 
+            case 'M':
                 return false;
-            case 'y': 
+            case 'y':
                 var minYear = (Math.floor(value.getFullYear() / 10) * 10);
                 return date.getFullYear() < minYear || (minYear + 10) <= date.getFullYear();
         }
         return false;
     },
-    _getCssClass : function(date, part) {
+    _getCssClass: function(date, part) {
         /// <summary>
         /// Gets the cssClass to apply to a cell based on a supplied date
         /// </summary>
@@ -1320,64 +1378,78 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             return "";
         }
     },
-    _getEffectiveVisibleDate : function() {
+    _getEffectiveVisibleDate: function() {
         var value = this.get_visibleDate();
-        if (value == null) 
+        if (value == null)
             value = this.get_selectedDate();
         if (value == null)
             value = this.get_todaysDate();
         return new Date(value.getFullYear(), value.getMonth(), 1, this._hourOffsetForDst);
     },
-    _getFirstDayOfWeek : function() {
+    _getFirstDayOfWeek: function() {
         /// <summary>
         /// Gets the first day of the week
         /// </summary>
-        
+
         if (this.get_firstDayOfWeek() != AjaxControlToolkit.FirstDayOfWeek.Default) {
             return this.get_firstDayOfWeek();
         }
         return Sys.CultureInfo.CurrentCulture.dateTimeFormat.FirstDayOfWeek;
     },
-    _parseTextValue : function(text) {
+    _parseTextValue: function(text) {
         /// <summary>
         /// Converts a text value from the textbox into a date
         /// </summary>
         /// <param name="text" type="String" mayBeNull="true">The text value to parse</param>
         /// <returns type="Date" />
-        
+
         var value = null;
-        if(text) {
-            value = Date.parseLocale(text, this.get_format());
+        if (text) {
+            //value = Date.parseLocale(text, this.get_format());
+
+            //add by big 5-Feb-2008 {
+            if (this._isThaiCulture()) {
+                //สำหรับไทยต้องใช้ format ที่มีเครื่องหมายวรรคตอนต่างๆคั่นไว้ เช่น d/M/yyyy, d m yyyy เป็นต้น
+                try {
+                    //เมื่อรับค่าจาก page มาของไทยจะเป็นปี พ.ศ. ดังนั้นต้องเปลี่ยนเป็น ค.ศ. ก่อน
+                    value = Date.parseLocale(this._convetTextYear(text, -543), this.get_format());
+                } catch (err) {
+                    alert("_parseTextValue Error : " + err);
+                }
+            } else {
+                value = Date.parseLocale(text, this.get_format());
+            }
+            //}
         }
-        if(isNaN(value)) {
+        if (isNaN(value)) {
             value = null;
         }
         return value;
     },
-    
-    _element_onfocus : function(e) {
+
+    _element_onfocus: function(e) {
         /// <summary> 
         /// Handles the focus event of the element
         /// </summary>
         /// <param name="e" type="Sys.UI.DomEvent">The arguments for the event</param>
-        if (!this._enabled) return;        
+        if (!this._enabled) return;
         if (!this._button) {
             this.show();
             // make sure we clean up the flag due to issues with alert/alt-tab/etc
             this._popupMouseDown = false;
         }
     },
-    _element_onblur : function(e) {
+    _element_onblur: function(e) {
         /// <summary> 
         /// Handles the blur event of the element
         /// </summary>
         /// <param name="e" type="Sys.UI.DomEvent">The arguments for the event</param>        
-        if (!this._enabled) return;        
+        if (!this._enabled) return;
         if (!this._button) {
             this.blur();
         }
     },
-    _element_onchange : function(e) {
+    _element_onchange: function(e) {
         /// <summary> 
         /// Handles the change event of the element
         /// </summary>
@@ -1388,10 +1460,10 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this._selectedDate = value;
             if (this._isOpen) {
                 this._switchMonth(this._selectedDate, this._selectedDate == null);
-            }   
+            }
         }
     },
-    _element_onkeypress : function(e) {
+    _element_onkeypress: function(e) {
         /// <summary>
         /// Handles the keypress event of the element
         /// </summary>
@@ -1403,7 +1475,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
             this.hide();
         }
     },
-    _element_onclick : function(e) {
+    _element_onclick: function(e) {
         /// <summary>
         /// Handles the click event of the element
         /// </summary>
@@ -1416,7 +1488,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
     },
 
-    _popup_onevent : function(e) {
+    _popup_onevent: function(e) {
         /// <summary> 
         /// Handles the drag-start event of the popup calendar
         /// </summary>
@@ -1424,22 +1496,22 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         e.stopPropagation();
         e.preventDefault();
     },
-    _popup_onmousedown : function(e) {
+    _popup_onmousedown: function(e) {
         /// <summary> 
         /// Handles the mousedown event of the popup
         /// </summary>
         /// <param name="e" type="Sys.UI.DomEvent">The arguments for the event</param>
-        
+
         // signal that the popup has received a mousedown event, this handles
         // onblur issues on browsers like FF, OP, and SF
-        this._popupMouseDown = true;        
+        this._popupMouseDown = true;
     },
-    _popup_onmouseup : function(e) {
+    _popup_onmouseup: function(e) {
         /// <summary> 
         /// Handles the mouseup event of the popup
         /// </summary>
         /// <param name="e" type="Sys.UI.DomEvent">The arguments for the event</param>
-        
+
         // signal that the popup has received a mouseup event, this handles
         // onblur issues on browsers like FF, OP, and SF
         if (Sys.Browser.agent === Sys.Browser.Opera && this._blur.get_isPending()) {
@@ -1449,7 +1521,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         this.focus();
     },
 
-    _cell_onmouseover : function(e) {
+    _cell_onmouseover: function(e) {
         /// <summary> 
         /// Handles the mouseover event of a cell
         /// </summary>
@@ -1471,7 +1543,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         Sys.UI.DomElement.addCssClass(target.parentNode, "ajax__calendar_hover");
     },
-    _cell_onmouseout : function(e) {
+    _cell_onmouseout: function(e) {
         /// <summary> 
         /// Handles the mouseout event of a cell
         /// </summary>
@@ -1483,12 +1555,12 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
 
         Sys.UI.DomElement.removeCssClass(target.parentNode, "ajax__calendar_hover");
     },
-    _cell_onclick : function(e) {
+    _cell_onclick: function(e) {
         /// <summary> 
         /// Handles the click event of a cell
         /// </summary>
         /// <param name="e" type="Sys.UI.DomEvent">The arguments for the event</param>
-        
+
         e.stopPropagation();
         e.preventDefault();
 
@@ -1497,7 +1569,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         var target = e.target;
         var visibleDate = this._getEffectiveVisibleDate();
         Sys.UI.DomElement.removeCssClass(target.parentNode, "ajax__calendar_hover");
-        switch(target.mode) {
+        switch (target.mode) {
             case "prev":
             case "next":
                 this._switchMonth(target.date);
@@ -1539,7 +1611,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
     },
 
-    _button_onclick : function(e) {
+    _button_onclick: function(e) {
         /// <summary> 
         /// Handles the click event of the asociated button
         /// </summary>
@@ -1559,7 +1631,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         // make sure we clean up the flag due to issues with alert/alt-tab/etc
         this._popupMouseDown = false;
     },
-    _button_onblur : function(e) {
+    _button_onblur: function(e) {
         /// <summary> 
         /// Handles the blur event of the button
         /// </summary>
@@ -1571,7 +1643,7 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         // make sure we clean up the flag due to issues with alert/alt-tab/etc
         this._popupMouseDown = false;
     },
-    _button_onkeypress : function(e) {
+    _button_onkeypress: function(e) {
         /// <summary>
         /// Handles the keypress event of the element
         /// </summary>
@@ -1584,7 +1656,90 @@ AjaxControlToolkit.CalendarBehavior.prototype = {
         }
         // make sure we clean up the flag due to issues with alert/alt-tab/etc
         this._popupMouseDown = false;
+    },
+
+    //add by big 5-Feb-2008 {
+    _isThaiCulture: function() {
+        var result = false;
+
+        //get culture name. ex th-TH
+        var cultureName = Sys.CultureInfo.CurrentCulture.name;
+        if (cultureName.indexOf("th") > -1) {
+            result = true;
+        }
+        return result;
+    },
+
+    _convetTextYear: function(text, yearAdd) {
+        /// <summary>
+        /// เปลี่ยนปีของ text วันที่ให้เป็น ค.ศ.หรือ พ.ศ. เพื่อนำไปใช้ในการ new Date หรือใช้ในการแสดงผล
+        /// เช่น 12/2/2551 ---> 12/2/2008
+        /// </summary>
+        /// <value type="String">
+        /// new date text
+        /// </value>
+        /// <param name="text" type="String">วันที่ในรูปแบบ String ที่มีปีเป็น พ.ศ.</param>
+        /// <param name="yearAdd" type="Integer">จำนวนปีที่ต้องการเพิ่มหรือลด</param>
+
+        var result = null;
+
+        var format = this.get_format()
+        if (format == "d") {
+            format = "d/M/yyyy";
+        }
+
+        //pattern ของปี 
+        var patt = /y{4}/;
+        //pattern ของเครื่องหมายวรรคตอน
+        var patt2 = /[^DdMyhms]/g;
+        //หาเครื่องหมายวรรคตอนที่มีทั้งหมดเก็บไว้ใน array
+        var punctuateArray = format.match(patt2);
+        //หาตำแหน่งเริ่มต้นของ pattern ปี
+        var yearPatternStartIndex = format.search(patt);
+
+        //ตัวแปรเก็บตำแหน่งของเครื่องหมายวรรคตอน
+        var punPosition = -1;
+        //ตัวแปรเก็บ index ของ punctuateArray
+        var punIndex = 0;
+
+        //วนลูป punctuateArray ทีละตัวเพื่อหาตำแหน่งของเครื่องหมายวรรคตอนแต่ละอัน
+        for (i = 0; i < punctuateArray.length; i++) {
+            //เก็บค่าตำแหน่งของเครื่องหมายวรรคตอนที่อยู่ใน format
+            punPosition = format.indexOf(punctuateArray[i], punPosition + 1);
+            //ถ้าตำแหน่งของเครื่องหมายวรรคตอนมีค่าเลยตำแหน่งเริ่มต้นของปีให้ทำการเก็บค่าเครื่องหมายวรรคตอนอันก่อนหน้าเอาไว้
+            if (yearPatternStartIndex < punPosition) {
+                punIndex = i - 1;
+                break;
+            }
+        }
+
+        if (punIndex == 0 && punPosition != -1) {
+            punIndex = punIndex + 1;
+        }
+
+        //reset ตำแหน่งของเครื่องหมายวรรคตอน
+        punPosition = -1;
+
+        //วนลูป punctuateArray อีกครั้งจนกว่าจะถึงตำแหน่งเครื่องหมายวรรคตอนที่นำหน้าปี
+        for (i = 0; i <= punIndex; i++) {
+            //เก็บค่าตำแหน่งของเครื่องหมายวรรคตอนที่อยู่ใน text
+            punPosition = text.indexOf(punctuateArray[i], punPosition + 1);
+        }
+
+        //ดึงค่าปีออกมาจาก text
+        var yearValue = text.substring(punPosition + 1, punPosition + 5);
+
+        //ถ้า format ของปีไม่ได้เป็น yyyy จะทำการแปลงค่าปีเป็นตัวเลขไม่ได้
+        if (isNaN(yearValue)) {
+            alert("format error : format must be " + format);
+        } else {
+            result = text.replace(yearValue, eval(yearValue) + yearAdd);
+        }
+
+        return result;
+
     }
+    //}
 }
 AjaxControlToolkit.CalendarBehavior.registerClass("AjaxControlToolkit.CalendarBehavior", AjaxControlToolkit.BehaviorBase);
 

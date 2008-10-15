@@ -10,12 +10,18 @@
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>AjaxControlToolkit.snk</AssemblyOriginatorKeyFile>
-    <SccProjectName></SccProjectName>
-    <SccLocalPath></SccLocalPath>
-    <SccAuxPath></SccAuxPath>
-    <SccProvider></SccProvider>
-    <FileUpgradeFlags></FileUpgradeFlags>
-    <UpgradeBackupLocation></UpgradeBackupLocation>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
     <OldToolsVersion>2.0</OldToolsVersion>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
@@ -487,6 +493,7 @@
     <EmbeddedResource Include="ScriptResources\ScriptResources.ru.resx" Condition=" '$(Configuration)'=='Release' ">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="ScriptResources\ScriptResources.th-TH.resx" />
     <EmbeddedResource Include="ScriptResources\ScriptResources.tr-TR.resx" Condition=" '$(Configuration)'=='Release' ">
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -503,6 +510,9 @@
     <EmbeddedResource Include="ToggleButton\ToggleButton.ico" />
     <EmbeddedResource Include="UpdatePanelAnimation\UpdatePanelAnimation.ico" />
     <EmbeddedResource Include="ValidatorCallout\ValidatorCallout.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Calendar\calendarJS.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <ProjectExtensions>
