@@ -1,0 +1,327 @@
+﻿สำหรับไทยต้องใช้ format ที่มีเครื่องหมายวรรคตอนต่างๆคั่นไว้(ห้ามคั่นมากกว่า1ตัวอักษร) เช่น d/M/yyyy, d m yyyy เป็นต้น(ที่เซ็ตค่าที่ control)
+
+
+ต้องส่วนไหนที่มีการแก้ไขจะ comment source ส่วนที่เป็น original ไว้ก่อนที่จะเพิ่มส่วนที่แก้ไข
+
+function ที่มีการเพิ่มหรือแก้ไขมีดังนี้
+
+//function set_selectedDate
+set_selectedDate : function(value) {
+        if(value && (String.isInstanceOfType(value)) && (value.length != 0)) {
+            value = new Date(value);
+        }
+        
+        if (value) value = value.getDateOnly();
+
+        if (this._selectedDate != value) {
+            this._selectedDate = value;            
+            this._selectedDateChanging = true;
+            var text = "";
+            if (value) {
+                //text = value.localeFormat(this._format);
+            
+                //add by big 5-Feb-2008 {
+                if(this._isThaiCulture()){
+                    //สำหรับไทยต้องใช้ format ที่มีเครื่องหมายวรรคตอนต่างๆคั่นไว้ เช่น d/M/yyyy, d m yyyy เป็นต้น
+                    try{
+                        temp = value.localeFormat(this._format);
+                        text = this._convetTextYear(temp,543);
+                    }catch (err){
+                        alert("set_selectedDate Error : "+err);
+                    }
+                }else{
+                    text = value.localeFormat(this._format);
+                }
+                //}
+            }
+            if (text != this._textbox.get_Value()) {
+                this._textbox.set_Value(text);
+                this._fireChanged();
+            }
+            this._selectedDateChanging = false;
+            this.invalidate();
+            this.raisePropertyChanged("selectedDate");
+        }
+    },
+
+
+//function _performLayout 
+_performLayout : function() {
+        /// <summmary>
+        /// Updates the various views of the calendar to match the current selected and visible dates
+        /// </summary>
+        
+        var elt = this.get_element();
+        if (!elt) return;
+        if (!this.get_isInitialized()) return;
+        if (!this._isOpen) return;
+
+        var dtf = Sys.CultureInfo.CurrentCulture.dateTimeFormat;        
+        var selectedDate = this.get_selectedDate();
+        var visibleDate = this._getEffectiveVisibleDate();
+        var todaysDate = this.get_todaysDate(); 
+        
+        switch (this._mode) {
+            case "days":
+                
+                var firstDayOfWeek = this._getFirstDayOfWeek();
+                var daysToBacktrack = visibleDate.getDay() - firstDayOfWeek;
+                if (daysToBacktrack <= 0)
+                    daysToBacktrack += 7;
+                    
+                var startDate = new Date(visibleDate.getFullYear(), visibleDate.getMonth(), visibleDate.getDate() - daysToBacktrack, this._hourOffsetForDst);
+                var currentDate = startDate;
+
+                for (var i = 0; i < 7; i++) {
+                    var dayCell = this._daysTableHeaderRow.cells[i].firstChild;
+                    if (dayCell.firstChild) {
+                        dayCell.removeChild(dayCell.firstChild);
+                    }
+                    dayCell.appendChild(document.createTextNode(dtf.ShortestDayNames[(i + firstDayOfWeek) % 7]));
+                }
+                for (var week = 0; week < 6; week ++) {
+                    var weekRow = this._daysBody.rows[week];
+                    for (var dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                        var dayCell = weekRow.cells[dayOfWeek].firstChild;
+                        if (dayCell.firstChild) {
+                            dayCell.removeChild(dayCell.firstChild);
+                        }
+                        dayCell.appendChild(document.createTextNode(currentDate.getDate()));
+                        dayCell.title = currentDate.localeFormat("D");
+                        dayCell.date = currentDate;
+                        $common.removeCssClasses(dayCell.parentNode, [ "ajax__calendar_other", "ajax__calendar_active" ]);
+                        Sys.UI.DomElement.addCssClass(dayCell.parentNode, this._getCssClass(dayCell.date, 'd'));
+                        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1, this._hourOffsetForDst);
+                    }
+                }
+                
+                this._prevArrow.date = new Date(visibleDate.getFullYear(), visibleDate.getMonth() - 1, 1, this._hourOffsetForDst);
+                this._nextArrow.date = new Date(visibleDate.getFullYear(), visibleDate.getMonth() + 1, 1, this._hourOffsetForDst);
+                if (this._title.firstChild) {
+                    this._title.removeChild(this._title.firstChild);
+                }
+                //this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM, yyyy")));
+                
+                //add by big 5-Feb-2008 {
+                if(this._isThaiCulture()){
+                    this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM ") + (eval(visibleDate.localeFormat("yyyy"))+543).toString() ));
+                }else{
+                    this._title.appendChild(document.createTextNode(visibleDate.localeFormat("MMMM, yyyy")));
+                }
+                //}
+                
+                this._title.date = visibleDate;
+
+                break;
+            case "months":
+
+                for (var i = 0; i < this._monthsBody.rows.length; i++) {
+                    var row = this._monthsBody.rows[i];
+                    for (var j = 0; j < row.cells.length; j++) {
+                        var cell = row.cells[j].firstChild;
+                        cell.date = new Date(visibleDate.getFullYear(), cell.month, 1, this._hourOffsetForDst);
+                        cell.title = cell.date.localeFormat("Y");
+                        $common.removeCssClasses(cell.parentNode, [ "ajax__calendar_other", "ajax__calendar_active" ]);
+                        Sys.UI.DomElement.addCssClass(cell.parentNode, this._getCssClass(cell.date, 'M'));
+                    }
+                }
+                
+                if (this._title.firstChild) {
+                    this._title.removeChild(this._title.firstChild);
+                }
+                //this._title.appendChild(document.createTextNode(visibleDate.localeFormat("yyyy")));
+                
+                //add by big 5-Feb-2008 {
+                if(this._isThaiCulture()){
+                    this._title.appendChild(document.createTextNode((eval(visibleDate.localeFormat("yyyy"))+543).toString() ));
+                }else{
+                    this._title.appendChild(document.createTextNode(visibleDate.localeFormat("yyyy")));
+                }
+                //}
+                
+                this._title.date = visibleDate;
+                this._prevArrow.date = new Date(visibleDate.getFullYear() - 1, 0, 1, this._hourOffsetForDst);
+                this._nextArrow.date = new Date(visibleDate.getFullYear() + 1, 0, 1, this._hourOffsetForDst);
+
+                break;
+            case "years":
+
+                var minYear = (Math.floor(visibleDate.getFullYear() / 10) * 10);
+                for (var i = 0; i < this._yearsBody.rows.length; i++) {
+                    var row = this._yearsBody.rows[i];
+                    for (var j = 0; j < row.cells.length; j++) {
+                        var cell = row.cells[j].firstChild;
+                        cell.date = new Date(minYear + cell.year, 0, 1, this._hourOffsetForDst);
+                        if (cell.firstChild) {
+                            cell.removeChild(cell.lastChild);
+                        } else {
+                            cell.appendChild(document.createElement("br"));
+                        }
+                        //cell.appendChild(document.createTextNode(minYear + cell.year));
+                        
+                        //add by big 5-Feb-2008 {
+                        if(this._isThaiCulture()){
+                            cell.appendChild(document.createTextNode(minYear + 543 + cell.year));
+                        }else{
+                            cell.appendChild(document.createTextNode(minYear + cell.year));
+                        }
+                        //}
+                        
+                        $common.removeCssClasses(cell.parentNode, [ "ajax__calendar_other", "ajax__calendar_active" ]);
+                        Sys.UI.DomElement.addCssClass(cell.parentNode, this._getCssClass(cell.date, 'y'));
+                    }
+                }
+
+                if (this._title.firstChild) {
+                    this._title.removeChild(this._title.firstChild);
+                }
+                //this._title.appendChild(document.createTextNode(minYear.toString() + "-" + (minYear + 9).toString()));
+                
+                //add by big 5-Feb-2008 {
+                if(this._isThaiCulture()){
+                    this._title.appendChild(document.createTextNode((minYear+543).toString() + "-" + (minYear + 543 + 9).toString()));
+                }else{
+                    this._title.appendChild(document.createTextNode(minYear.toString() + "-" + (minYear + 9).toString()));
+                }
+                //}
+                this._title.date = visibleDate;
+                this._prevArrow.date = new Date(minYear - 10, 0, 1, this._hourOffsetForDst);
+                this._nextArrow.date = new Date(minYear + 10, 0, 1, this._hourOffsetForDst);
+
+                break;
+        }
+        if (this._today.firstChild) {
+            this._today.removeChild(this._today.firstChild);
+        }
+        //this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("MMMM d, yyyy"))));
+        
+        //add by big 5-Feb-2008 {
+        if(this._isThaiCulture()){
+            this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("d MMMM "+ (eval(visibleDate.localeFormat("yyyy"))+543).toString() ))));
+        }else{
+            this._today.appendChild(document.createTextNode(String.format(AjaxControlToolkit.Resources.Calendar_Today, todaysDate.localeFormat("MMMM d, yyyy"))));
+        }
+        //}
+        
+        this._today.date = todaysDate;        
+    },
+
+ 
+
+//function _parseTextValue 
+_parseTextValue : function(text) {
+        /// <summary>
+        /// Converts a text value from the textbox into a date
+        /// </summary>
+        /// <param name="text" type="String" mayBeNull="true">The text value to parse</param>
+        /// <returns type="Date" />
+        
+        var value = null;
+        if(text) {
+            //value = Date.parseLocale(text, this.get_format());
+            
+            //add by big 5-Feb-2008 {
+            if(this._isThaiCulture()){
+                //สำหรับไทยต้องใช้ format ที่มีเครื่องหมายวรรคตอนต่างๆคั่นไว้ เช่น d/M/yyyy, d m yyyy เป็นต้น
+                try{
+                    //เมื่อรับค่าจาก page มาของไทยจะเป็นปี พ.ศ. ดังนั้นต้องเปลี่ยนเป็น ค.ศ. ก่อน
+                    value = Date.parseLocale(this._convetTextYear(text,-543), this.get_format());
+                }catch (err){
+                    alert("_parseTextValue Error : "+err);
+                }
+            }else{
+                value = Date.parseLocale(text, this.get_format());
+            }
+            //}
+        }
+        if(isNaN(value)) {
+            value = null;
+        }
+        return value;
+    },
+
+ 
+
+//function ที่เพิ่ม เอาไว้ตรงไหนก็ได้ภายใน CalendarBehavior
+//add by big 5-Feb-2008 {
+    _isThaiCulture : function(){
+        var result = false;
+        
+        //get culture name. ex th-TH
+        var cultureName = Sys.CultureInfo.CurrentCulture.name;
+        if(cultureName.indexOf("th") > -1){
+            result = true;
+        }
+        return result;
+    },
+    
+    _convetTextYear : function(text,yearAdd){      
+        /// <summary>
+        /// เปลี่ยนปีของ text วันที่ให้เป็น ค.ศ.หรือ พ.ศ. เพื่อนำไปใช้ในการ new Date หรือใช้ในการแสดงผล
+        /// เช่น 12/2/2551 ---> 12/2/2008
+        /// </summary>
+        /// <value type="String">
+        /// new date text
+        /// </value>
+        /// <param name="text" type="String">วันที่ในรูปแบบ String ที่มีปีเป็น พ.ศ.</param>
+        /// <param name="yearAdd" type="Integer">จำนวนปีที่ต้องการเพิ่มหรือลด</param>
+        
+        var result = null;
+        
+        var format = this.get_format()
+        if (format == "d"){
+            format = "d/M/yyyy";
+        }
+        
+        //pattern ของปี 
+        var patt = /y{4}/;
+        //pattern ของเครื่องหมายวรรคตอน
+        var patt2 = /[^DdMyhms]/g;
+        //หาเครื่องหมายวรรคตอนที่มีทั้งหมดเก็บไว้ใน array
+        var punctuateArray = format.match(patt2);
+        //หาตำแหน่งเริ่มต้นของ pattern ปี
+        var yearPatternStartIndex = format.search(patt);
+        
+        //ตัวแปรเก็บตำแหน่งของเครื่องหมายวรรคตอน
+        var punPosition = -1;
+        //ตัวแปรเก็บ index ของ punctuateArray
+        var punIndex = 0;
+        
+        //วนลูป punctuateArray ทีละตัวเพื่อหาตำแหน่งของเครื่องหมายวรรคตอนแต่ละอัน
+        for (i=0;i<punctuateArray.length;i++){
+            //เก็บค่าตำแหน่งของเครื่องหมายวรรคตอนที่อยู่ใน format
+            punPosition = format.indexOf(punctuateArray[i], punPosition + 1);
+            //ถ้าตำแหน่งของเครื่องหมายวรรคตอนมีค่าเลยตำแหน่งเริ่มต้นของปีให้ทำการเก็บค่าเครื่องหมายวรรคตอนอันก่อนหน้าเอาไว้
+            if(yearPatternStartIndex < punPosition){
+                punIndex = i-1;
+                break;
+            }
+        }
+        
+        if(punIndex == 0 && punPosition != -1){
+            punIndex = punIndex + 1 ;
+        }
+
+        //reset ตำแหน่งของเครื่องหมายวรรคตอน
+        punPosition = -1;
+        
+        //วนลูป punctuateArray อีกครั้งจนกว่าจะถึงตำแหน่งเครื่องหมายวรรคตอนที่นำหน้าปี
+        for (i=0;i<=punIndex;i++){
+            //เก็บค่าตำแหน่งของเครื่องหมายวรรคตอนที่อยู่ใน text
+            punPosition = text.indexOf(punctuateArray[i], punPosition + 1);
+        }
+
+        //ดึงค่าปีออกมาจาก text
+        var yearValue = text.substring(punPosition + 1, punPosition + 5);
+        
+        //ถ้า format ของปีไม่ได้เป็น yyyy จะทำการแปลงค่าปีเป็นตัวเลขไม่ได้
+        if(isNaN(yearValue)){
+            alert("format error : format must be " + format);
+        }else{
+            result = text.replace(yearValue, eval(yearValue) + yearAdd);
+        }
+
+        return result;
+        
+    }
+    //}
