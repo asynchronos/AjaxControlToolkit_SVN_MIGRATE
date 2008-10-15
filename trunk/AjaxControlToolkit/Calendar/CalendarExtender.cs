@@ -88,8 +88,8 @@ namespace AjaxControlToolkit
         {
             get { return GetPropertyValue("PopupButtonID", string.Empty); }
             set { SetPropertyValue("PopupButtonID", value); }
-        }        
-        
+        }
+
         [ExtenderControlProperty]
         [ClientPropertyName("popupPosition")]
         [DefaultValue(CalendarPosition.BottomLeft)]
